@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import '../assets/FormSubmission.css';
 
 function FormSubmission() {
@@ -10,6 +11,7 @@ function FormSubmission() {
 
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setUserData({
@@ -18,27 +20,45 @@ function FormSubmission() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // validation
+    // Validation
     if (!userData.name || !userData.email || !userData.address) {
       setError('All fields are required');
       return;
     }
 
     setError('');
-    setIsSubmitted(true); // hide form
+    setLoading(true);
+
+    try {
+      // AXIOS POST REQUEST
+      const response = await axios.post(
+        'https://jsonplaceholder.typicode.com/posts',
+        userData
+      );
+
+      console.log('Submitted data:', response.data);
+
+      setIsSubmitted(true); // hide form after success
+    } catch (err) {
+      console.error('Submission error:', err);
+      setError('Submission failed. Try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resetForm = () => {
     setUserData({ name: '', email: '', address: '' });
     setIsSubmitted(false);
+    setError('');
   };
 
   return (
     <div className="container">
-      <h3>Form Submission</h3>
+      <h3>Axios Form Submission</h3>
 
       {!isSubmitted && (
         <form onSubmit={handleSubmit}>
@@ -71,7 +91,9 @@ function FormSubmission() {
 
           {error && <p className="error">{error}</p>}
 
-          <button type="submit">Submit</button>
+          <button type="submit" disabled={loading}>
+            {loading ? 'Submitting...' : 'Submit'}
+          </button>
         </form>
       )}
 
